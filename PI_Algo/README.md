@@ -6,7 +6,12 @@ Code to produce the Stet by Step project performance indicators. In the /tests/d
 
 ## Installation
 
-Install dependencies using
+Create conda enviroment running
+```
+conda create -n Env_PI_Algo python=3.6
+```
+
+and install dependencies using
 ```
 pip install -r requirements.txt
 ```
