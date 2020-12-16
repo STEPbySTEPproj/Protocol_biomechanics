@@ -303,16 +303,16 @@ def Generate_PI(argv):
     test=smooth_signal(test)
 
     #Classify the movement as ascend or descend
-    clas_ascend_descend = pickle.load(open("Input/Models/model_descend_ascend.sav", 'rb'))
+    clas_ascend_descend = pickle.load(open("test/data/protocol_1/input/models/model_descend_ascend.sav", 'rb'))
     descend = clas_ascend_descend.predict(test[0:500].to_numpy().flatten().reshape(1,-1))
 
     #Loading the correct model
     if(descend==1):
         #print("Loading descend model")
-        model=pickle.load(open("Input/Models/model_descend.sav", 'rb'))
+        model=pickle.load(open("test/data/protocol_1/input/models/model_descend.sav", 'rb'))
     else:
         #print("Loading ascend model")
-        model=pickle.load(open("Input/Models/model_ascend.sav", 'rb'))
+        model=pickle.load(open("test/data/protocol_1/input/models/model_ascend.sav", 'rb'))
 
     #The variables are chosen and a window is created for each observation
     S_test=test[['RK-R_X','LK-R_X']].to_numpy()
