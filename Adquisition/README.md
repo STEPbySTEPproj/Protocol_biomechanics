@@ -6,7 +6,7 @@ Given a measurement captured in the Axis Neuron Pro, this software generates a c
 
 First intall the Axis Neuron Pro  (https://neuronmocap.com/content/axis-neuron-pro) and the install Python dependencies using
 ```
-pip install -r requirements.txt
+pip install --user -r requirements.txt
 ```
 
 ## Generate the csv
