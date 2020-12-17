@@ -13,7 +13,7 @@ conda create -n Env_PI_Algo python=3.6
 
 and install dependencies using
 ```
-pip --user install -r requirements.txt
+pip install --user -r requirements.txt
 ```
 
 ## Usage
