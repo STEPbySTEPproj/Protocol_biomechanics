@@ -33,7 +33,7 @@ jobs:
 
     - name: test the docker image
       env:
-        TEST_PLAN: tests/test_plan.xml
+        TEST_PLAN: pi_algo/pi_algo/tests/test_plan.xml
         #not accepted as the repo contains uppercase letters
         #DOCKER_IMAGE: ${{ github.event.repository.name }}:${{ github.head_ref }}
         DOCKER_IMAGE: pi_sbs:${{ github.head_ref }}
