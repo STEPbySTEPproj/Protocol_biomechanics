@@ -30,7 +30,8 @@ python3 -m venv venv
 # to be executed everytime a terminal session is launched
 source venv/bin/activate
 pip install --upgrade pip
-pip install -r PI_Algo/requirements.txt
+pip install -r pi_algo/requirements.txt
+pip install -e pi_algo
 # to deactive the virtual environment
 deactivate
 ```
@@ -40,7 +41,7 @@ deactivate
 Generate the performance indicators using, assuming the folder `out` has already been created:
 
 ```term
-python run_protocol_1.py tests/data/protocol_1/input/data/test.csv out
+run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/test.csv out
 ```
 
 The sample file is the output of the data acquisition software.

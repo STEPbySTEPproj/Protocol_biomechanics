@@ -1,13 +1,15 @@
+#! /usr/bin/env python3
+
 import sys
 from termcolor import colored
 import os
-from run_pi_mocap_metrics import Generate_PI
+from pi_algo.run_pi_mocap_metrics import Generate_PI
 
 USAGE = """usage: run_pi file_in folder_out
             file_in: csv file containing at least a timestamp column
             folder_out: folder where the PI yaml file yaml file will be stored
             """
-            
+
 if len(sys.argv) != 3:
     print(colored("Wrong input parameters !", "red"))
     print(colored(USAGE, "yellow"))
