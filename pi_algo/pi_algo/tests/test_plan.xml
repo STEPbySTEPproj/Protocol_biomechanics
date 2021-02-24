@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test_plan>
+<test pi_name="run_protocol_1"
+      parameters="/in/test.csv /out"
+      input_folder="data/protocol_1/input/data"
+      output_folder="data/protocol_1/output"/>
+</test_plan>
