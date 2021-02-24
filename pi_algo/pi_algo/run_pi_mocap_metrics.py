@@ -617,28 +617,28 @@ def Generate_PI(argv):
     #Calculate the metrics of maximum, minimum, mean and std of various variables
 
     lul_max, lul_min, lul_mean, lul_std = PI_Sensors_LUL(test)
-    lul_vector = np.array([lul_max, lul_min, lul_mean, lul_std])
+    lul_vector = np.around(np.array([lul_max, lul_min, lul_mean, lul_std]),5)
     yaml_export(lul_vector, output_dir,'hip_left_angle', 'vector')
 
     lk_max, lk_min, lk_mean, lk_std = PI_Sensors_LK(test)
-    lk_vector = np.array([lk_max, lk_min, lk_mean, lk_std])
+    lk_vector = np.around(np.array([lk_max, lk_min, lk_mean, lk_std]),5)
     yaml_export(lk_vector, output_dir,'knee_left_angle', 'vector')
 
     lf_max, lf_min, lf_mean, lf_std = PI_Sensors_LF(test)
-    lf_vector = np.array([lf_max, lf_min, lf_mean, lf_std])
+    lf_vector = np.around(np.array([lf_max, lf_min, lf_mean, lf_std]),5)
     yaml_export(lf_vector, output_dir,'ankle_left_angle', 'vector')
 
 
     rul_max, rul_min, rul_mean, rul_std = PI_Sensors_RUL(test)
-    rul_vector = np.array([rul_max, rul_min, rul_mean, rul_std])
+    rul_vector = np.around(np.array([rul_max, rul_min, rul_mean, rul_std]),5)
     yaml_export(rul_vector, output_dir,'hip_right_angle', 'vector')
 
     rk_max, rk_min, rk_mean, rk_std = PI_Sensors_RK(test)
-    rk_vector = np.array([rk_max, rk_min, rk_mean, rk_std])
+    rk_vector = np.around(np.array([rk_max, rk_min, rk_mean, rk_std]),5)
     yaml_export(rk_vector, output_dir,'knee_right_angle', 'vector')
 
     rf_max, rf_min, rf_mean, rf_std = PI_Sensors_RF(test)
-    rf_vector = np.array([rf_max, rf_min, rf_mean, rf_std])
+    rf_vector = np.around(np.array([rf_max, rf_min, rf_mean, rf_std]),5)
     yaml_export(rf_vector, output_dir,'ankle_right_angle', 'vector')
     
     print("The metrics generation finished successfully")
