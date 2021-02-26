@@ -24,6 +24,8 @@ pip install --user -r requirements.txt
 
 ### using venv
 
+Under Linux, another option is:
+
 ```term
 # From this folder
 python3 -m venv venv
@@ -40,8 +42,17 @@ deactivate
 
 Generate the performance indicators using, assuming the folder `out` has already been created:
 
+If the package has been installed, one can use:
+
 ```term
 run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/test.csv out
+```
+
+otherwise:
+
+```term
+# under Linux
+pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/test.csv out
 ```
 
 The sample file is the output of the data acquisition software.
