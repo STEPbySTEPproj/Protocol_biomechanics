@@ -5,7 +5,7 @@ from scipy import signal
 from scipy.signal import butter, freqz, filtfilt
 import re
 import pickle
-import yaml
+from ruamel.yaml import YAML
 import sys
 from termcolor import colored
 from pkgutil import get_loader
@@ -175,8 +175,13 @@ def yaml_export(data, output_dir, category, datatype):
         """
 
         tmp_dict = dict(type=datatype, value=data.tolist())
+
+        yaml = YAML()
+        if tmp_dict['type'] == 'vector':
+            yaml.default_flow_style = None
+
         with open('{}/{}.yml'.format(output_dir,category), 'w') as file:
-            _ = yaml.dump(tmp_dict, file, default_flow_style=True)
+            _ = yaml.dump(tmp_dict, file)
 
 
 def PI_Sensors_LUL(sensors_data):
