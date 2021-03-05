@@ -45,14 +45,14 @@ Generate the performance indicators using, assuming the folder `out` has already
 If the package has been installed, one can use:
 
 ```term
-run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/test.csv out
+run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
 ```
 
 otherwise:
 
 ```term
 # under Linux
-pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/test.csv out
+pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
 ```
 
 The sample file is the output of the data acquisition software.
@@ -73,7 +73,7 @@ docker build . -t pi_sbs
 Assuming the `pi_algo/pi_algo/tests/data/protocol_1/input/data/` contains the input data, and that the directory `out/` is **already created**, and will contain the PI output:
 
 ```shell
-docker run --rm -v $PWD/pi_algo/pi_algo/tests/data/protocol_1/input/data/:/in -v $PWD/out:/out pi_sbs run_protocol_1 /in/test.csv /out
+docker run --rm -v $PWD/pi_algo/pi_algo/tests/data/protocol_1/input/data/:/in -v $PWD/out:/out pi_sbs run_protocol_1 /in/platformData.csv /out
 ```
 
 ### Test the generate docker image
