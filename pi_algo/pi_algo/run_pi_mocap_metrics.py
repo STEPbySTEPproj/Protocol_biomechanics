@@ -328,7 +328,7 @@ def Generate_PI(argv):
     #Delete label and frame_idx columns
     if(test.columns[-1]=='Label'):
         test=test.drop(columns='Label')
-    test=test.drop(columns='Frame_Idx')
+    #test=test.drop(columns='Frame_Idx')
     test=smooth_signal(test)
 
     #Classify the movement as ascend or descend
