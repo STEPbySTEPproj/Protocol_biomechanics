@@ -45,7 +45,9 @@ deactivate
 ## Usage in Windows
 
 Generate the performance indicators using, assuming the folder `out` has already been created:
+```term
 python pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
+```
 
 The sample file is the output of the data acquisition software.
 The files in `out` folder should be the same as the ones in pi_algo/pi_algo/tests/data/protocol_1/output
