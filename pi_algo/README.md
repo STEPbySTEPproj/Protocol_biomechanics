@@ -16,10 +16,14 @@ Create conda enviroment running
 conda create -n Env_PI_Algo python=3.6
 ```
 
-and install dependencies using
+Install dependencies using
 
 ```term
 pip install --user -r requirements.txt
+```
+Install package pi_algo
+```term
+pip install --user -e pi_algo
 ```
 
 ### using venv
@@ -38,7 +42,10 @@ pip install -e pi_algo
 deactivate
 ```
 
-## Usage
+## Usage in Windows
+python pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
+
+## Usage in Linux
 
 Generate the performance indicators using, assuming the folder `out` has already been created:
 
