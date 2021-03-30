@@ -11,7 +11,7 @@ pip install --user -r requirements.txt
 
 ## Generate the csv
 
-To generate the csv froma a .raw observation follow the nex steps:
+To generate the csv from a .raw observation follow the nex steps:
 
 * Open Axis Neuron Pro and select the desired observation (in the Example folder there is a sample file).
 * Inside the Python folder, execute 
