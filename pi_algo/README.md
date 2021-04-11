@@ -3,7 +3,7 @@
 ## Purposes
 
 Code to produce the Stet by Step project performance indicators.
-In the `/tests/data/protocol_1_PI_Algo/input/Models` folder there are three models: one to classify if the sequence is ascend or descend and another two to classify the events based on the sequence type.
+In the `/tests/data/protocol_1_PI_Algo/input/Models` folder there are two models to classify the events based on the sequence type (ascending or descending).
 In the `/tests/data/protocol_1_PI_Algo/input/Data` folder there are `csv` files that can be used to test the code.
 
 ## Installation
@@ -21,7 +21,7 @@ Install dependencies using
 ```term
 pip install --user -r requirements.txt
 ```
-Install package pi_algo
+Install package pi_algo (run it in the Protocol_biomechanics/ folder)
 ```term
 pip install --user -e pi_algo
 ```
@@ -44,7 +44,7 @@ deactivate
 
 ## Usage in Windows
 
-Generate the performance indicators using, assuming the folder `out` has already been created:
+Generate the performance indicators, assuming the folder `out` has already been created:
 ```term
 python pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
 ```
