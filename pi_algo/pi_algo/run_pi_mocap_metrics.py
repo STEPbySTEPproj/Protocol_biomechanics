@@ -281,6 +281,11 @@ def PI_Sensors_RF(sensors_data):
             np.mean(sensors_data['RF-R_Y']), \
             np.std(sensors_data['RF-R_Y'])
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+import matplotlib.pyplot as plt
 
 def Generate_PI(argv):
 
@@ -331,6 +336,7 @@ def Generate_PI(argv):
     #test=test.drop(columns='Frame_Idx')
     test=smooth_signal(test)
 
+    '''
     #Classify the movement as ascend or descend
     data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_descend_ascend.sav", False)
     clas_ascend_descend = pickle.load(open(data_path, 'rb'))
@@ -345,9 +351,56 @@ def Generate_PI(argv):
         #print("Loading ascend model")
         data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_ascend.sav", False)
         model=pickle.load(open(data_path, 'rb'))
+    '''
+
+    '''
+    y=smooth(test["LK-R_X"],19)
+    plt.plot(test, 'g-', lw=2)
+    plt.plot(y, 'r-', lw=2)
+    plt.show()
+    '''  
+    y=test["LK-R_X"]
+    x=np.arange(0,len(y))
+
+    #     ___ detection of local maximums ___
+    c = (np.diff(np.sign(np.diff(y))) < 0).nonzero()[0] + 1         # local max
+    # +1 due to the fact that diff reduces the original index number
+    max_y=y.max()
+    max_peaks_x=x[c]
+    max_peaks_y=y[c]
+    max_peaks_x=max_peaks_x[max_peaks_y<=max_y/2]
+    max_peaks_y=max_peaks_y[max_peaks_y<=max_y/2]
+
+    max_y=max_peaks_y.max()
+    index=np.where(y==max_y)
+    index=int(index[0])
+
+    i=index
+    while (np.int32(y[i])>=5):
+        i=i-1
+    index_stop_ascending=i-100
+
+    i=index
+    while (np.int32(y[i])>=5):
+        i=i+1
+    index_start_descending=i+100
+
+    '''
+    plt.figure(figsize=(12, 5))
+    plt.plot(x,y, color='grey')
+    plt.plot(x[index_stop_ascending],y[index_stop_ascending],"o",color='r')
+    plt.plot(x[index_start_descending],y[index_start_descending],"o",color='r')
+    plt.show()
+    '''
+
+    # --------------- Ascending model -------------------------------
+    #print("Loading ascend model")
+    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_ascend.sav", False)
+    model=pickle.load(open(data_path, 'rb'))
+    test2=test.iloc[0:index_stop_ascending]
 
     #The variables are chosen and a window is created for each observation
-    S_test=test[['RK-R_X','LK-R_X']].to_numpy()
+    S_test=test2[['RK-R_X','LK-R_X']].to_numpy()
     datos=[]
     window=30
     for i in range(window,S_test.shape[0]-window):
@@ -423,228 +476,341 @@ def Generate_PI(argv):
         P_FS= R_FS
         S_FS= L_FS
 
-
-    #Based on de prediction decide which metrics to compute
-    if(descend==1):
-        yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'total_time_descend', 'scalar')
-        #weight_acceptance_descend 
-
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'weight_acceptance_ascend', 'scalar')
-        
-        # forward_continuance_descend 
-
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
-
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'pull_up', 'scalar')
-        
-        # Controlled_lowering_descend
-        
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_TO[i+1]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_TO[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
-
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'forward_continuance_ascend', 'scalar')
-        
-        #  Leg_pull_through_descend
-
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
-
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'swing_foot_clearance', 'scalar')
-
-        # Foot_placement_descend
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
-
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'swing_foot_placement', 'scalar')
-
-
     #Ascend metrics
-    if(descend==0):
-        yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'total_time_ascend', 'scalar')
-        #weight_acceptance_ascend 
+    yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'ascending_total_time', 'scalar')
+    
+    #weight_acceptance_ascend 
 
-        results=[]
+    results=[]
 
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
 
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
-
-
-        results = [0 if i < 0 else i for i in results]
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
 
 
-        yaml_export(np.mean(results), output_dir,  'weight_acceptance_ascend', 'scalar')
-
-        #pull up 
-
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
+    results = [0 if i < 0 else i for i in results]
 
 
-        results = [0 if i < 0 else i for i in results]
+    yaml_export(np.mean(results), output_dir,  'ascending_weight_acceptance', 'scalar')
 
-        yaml_export(np.mean(results), output_dir,  'pull_up', 'scalar')
+    #pull up 
 
-        # forward_continuance_ascend
+    results=[]
 
-        results=[]
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
 
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((S_FS[i]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((P_FS[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'forward_continuance_ascend', 'scalar')
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
 
 
-        # push up
+    results = [0 if i < 0 else i for i in results]
 
-        results=[]
+    yaml_export(np.mean(results), output_dir,  'ascending_pull_up', 'scalar')
 
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_TO[i+1]-S_FS[i])/(P_FS[i+1]-P_FS[i]))
+    # forward_continuance_ascend
 
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_TO[i]-P_FS[i])/(S_FS[i+1]-S_FS[i]))
+    results=[]
 
-        results = [0 if i < 0 else i for i in results]
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((S_FS[i]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
 
-        yaml_export(np.mean(results), output_dir,  'push_up', 'scalar')
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((P_FS[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
 
+    results = [0 if i < 0 else i for i in results]
 
-        # swing_foot_clearance
-
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
-
-        results = [0 if i < 0 else i for i in results]
-
-        yaml_export(np.mean(results), output_dir,  'swing_foot_clearance', 'scalar')
-
-        # swing_foot_placement
-        results=[]
-
-        for i in range(len(P_FS)-1):
-            gait_time=P_FS[i+1]-P_FS[i]
-            results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
-
-        for i in range(len(S_FS)-1):
-            gait_time=S_FS[i+1]-S_FS[i]
-            results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
+    yaml_export(np.mean(results), output_dir,  'ascending_forward_continuance', 'scalar')
 
 
-        results = [0 if i < 0 else i for i in results]
+    # push up
 
-        yaml_export(np.mean(results), output_dir,  'swing_foot_placement', 'scalar')
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_TO[i+1]-S_FS[i])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_TO[i]-P_FS[i])/(S_FS[i+1]-S_FS[i]))
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'ascending_push_up', 'scalar')
 
 
-    #Readingh again the original file
+    # swing_foot_clearance
+
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'ascending_swing_foot_clearance', 'scalar')
+
+
+    # swing_foot_placement
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
+
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'ascending_swing_foot_placement', 'scalar')
+
+
+    # --------------- Descending model -------------------------------
+    #print("Loading descend model")
+    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_descend.sav", False)
+    model=pickle.load(open(data_path, 'rb'))
+    test2=test.iloc[index_start_descending:len(test)-1]
+
+    #The variables are chosen and a window is created for each observation
+    S_test=test2[['RK-R_X','LK-R_X']].to_numpy()
+    datos=[]
+    window=30
+    for i in range(window,S_test.shape[0]-window):
+        datos.append(S_test[i-window:i+window,:].flatten())
+    X_test=np.asarray(datos)
+
+    #The prediction is performed and the observations removed due to the window are added again
+    pred=model.predict(X_test)
+    pred=np.asarray(pred,dtype=int)
+    pred=list(np.pad(pred, (window, window), 'constant'))
+
+    #Estimate events based on the sequence of predictions, 67 is left leg and 34 rigth leg
+    action_seq = clean_data(pd.DataFrame(pred))
+    action_seq, index_seq = extract_features(action_seq)
+
+    separator = ''
+    action_seq = separator.join(action_seq)
+    list_gait_seq = ["67","34"]
+
+    # Create lists of Left/Rigth Toe-Off, Mid-swing and Foot-Strike
+    L_TO=[]
+    R_TO=[]
+
+    L_MS=[]
+    R_MS=[]
+
+    L_FS=[]
+    R_FS=[]
+
+    #Define the Toe-Off, Mid-swing and Foot-Strike as the first, second and third element of each sequence
+    for i in list_gait_seq:
+        gait_seq=i
+        f=generate_gait_seq(gait_seq, action_seq, index_seq)
+        #print(f)
+        for k in f:
+            if(gait_seq=="67"):
+                L_TO.append(index_seq[k-1])
+                L_MS.append(index_seq[k])
+                L_FS.append(index_seq[k+1])
+            elif(gait_seq=="34"):
+                R_TO.append(index_seq[k-1])
+                R_MS.append(index_seq[k])
+                R_FS.append(index_seq[k+1])
+                
+
+    # Decide which leg has gone first and assign it to the events to the P_TO, P_MS 
+    #   and P_FS lists and the second leg to the S lists S_TO, S_MS and S_FS
+    P_TO=[]
+    S_TO=[]
+
+    P_MS=[]
+    S_MS=[]
+
+    P_FS=[]
+    S_FS=[]
+
+    if(R_TO[0]>=L_TO[0]):
+        P_TO= L_TO
+        S_TO= R_TO
+
+        P_MS= L_MS
+        S_MS= R_MS
+
+        P_FS= L_FS
+        S_FS= R_FS
+    elif(L_TO[0]>R_TO[0]):
+        P_TO= R_TO
+        S_TO= L_TO
+
+        P_MS= R_MS
+        S_MS= L_MS
+
+        P_FS= R_FS
+        S_FS= L_FS
+
+    #Descend metrics
+    yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'descending_total_time', 'scalar')
+    
+    #weight_acceptance_descend 
+
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'descending_weight_acceptance', 'scalar')
+    
+    # forward_continuance_descend 
+
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
+
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'descending_forward_continuance', 'scalar')
+    
+    # Controlled_lowering_descend
+    
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_TO[i+1]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_TO[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
+
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'descending_controlled_lowering', 'scalar')
+    
+    #  Leg_pull_through_descend
+
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
+
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'descending_swing_leg_pull_through', 'scalar')
+
+    # Foot_placement_descend
+    results=[]
+
+    for i in range(len(P_FS)-1):
+        gait_time=P_FS[i+1]-P_FS[i]
+        results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
+
+    for i in range(len(S_FS)-1):
+        gait_time=S_FS[i+1]-S_FS[i]
+        results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
+
+
+    results = [0 if i < 0 else i for i in results]
+
+    yaml_export(np.mean(results), output_dir,  'descending_swing_foot_placement', 'scalar')
+
+    # Ascending model
+    # Reading again the original file
     test=pd.read_csv(file_in)
-
+    test=test[0:index_stop_ascending]
     #Calculate the metrics of maximum, minimum, mean and std of various variables
 
     lul_max, lul_min, lul_mean, lul_std = PI_Sensors_LUL(test)
-    lul_vector = np.around(np.array([lul_max, lul_min, lul_mean, lul_std]),5)
-    yaml_export(lul_vector, output_dir,'hip_left_angle', 'vector')
+    lul_vector = np.around(np.array([lul_min, lul_max, lul_mean, lul_std]),5)
+    yaml_export(lul_vector, output_dir,'ascending_hip_left_angle', 'vector')
 
     lk_max, lk_min, lk_mean, lk_std = PI_Sensors_LK(test)
-    lk_vector = np.around(np.array([lk_max, lk_min, lk_mean, lk_std]),5)
-    yaml_export(lk_vector, output_dir,'knee_left_angle', 'vector')
+    lk_vector = np.around(np.array([lk_min, lk_max, lk_mean, lk_std]),5)
+    yaml_export(lk_vector, output_dir,'ascending_knee_left_angle', 'vector')
 
     lf_max, lf_min, lf_mean, lf_std = PI_Sensors_LF(test)
-    lf_vector = np.around(np.array([lf_max, lf_min, lf_mean, lf_std]),5)
-    yaml_export(lf_vector, output_dir,'ankle_left_angle', 'vector')
-
+    lf_vector = np.around(np.array([lf_min, lf_max, lf_mean, lf_std]),5)
+    yaml_export(lf_vector, output_dir,'ascending_ankle_left_angle', 'vector')
 
     rul_max, rul_min, rul_mean, rul_std = PI_Sensors_RUL(test)
-    rul_vector = np.around(np.array([rul_max, rul_min, rul_mean, rul_std]),5)
-    yaml_export(rul_vector, output_dir,'hip_right_angle', 'vector')
+    rul_vector = np.around(np.array([rul_min, rul_max, rul_mean, rul_std]),5)
+    yaml_export(rul_vector, output_dir,'ascending_hip_right_angle', 'vector')
 
     rk_max, rk_min, rk_mean, rk_std = PI_Sensors_RK(test)
-    rk_vector = np.around(np.array([rk_max, rk_min, rk_mean, rk_std]),5)
-    yaml_export(rk_vector, output_dir,'knee_right_angle', 'vector')
+    rk_vector = np.around(np.array([rk_min, rk_max, rk_mean, rk_std]),5)
+    yaml_export(rk_vector, output_dir,'ascending_knee_right_angle', 'vector')
 
     rf_max, rf_min, rf_mean, rf_std = PI_Sensors_RF(test)
-    rf_vector = np.around(np.array([rf_max, rf_min, rf_mean, rf_std]),5)
-    yaml_export(rf_vector, output_dir,'ankle_right_angle', 'vector')
+    rf_vector = np.around(np.array([rf_min, rf_max, rf_mean, rf_std]),5)
+    yaml_export(rf_vector, output_dir,'ascending_ankle_right_angle', 'vector')
+    
+    # Descending model
+    # Reading again the original file
+    test=pd.read_csv(file_in)
+    test=test[index_start_descending:len(test)-1]
+    #Calculate the metrics of maximum, minimum, mean and std of various variables
+
+    lul_max, lul_min, lul_mean, lul_std = PI_Sensors_LUL(test)
+    lul_vector = np.around(np.array([lul_min, lul_max, lul_mean, lul_std]),5)
+    yaml_export(lul_vector, output_dir,'descending_hip_left_angle', 'vector')
+
+    lk_max, lk_min, lk_mean, lk_std = PI_Sensors_LK(test)
+    lk_vector = np.around(np.array([lk_min, lk_max, lk_mean, lk_std]),5)
+    yaml_export(lk_vector, output_dir,'descending_knee_left_angle', 'vector')
+
+    lf_max, lf_min, lf_mean, lf_std = PI_Sensors_LF(test)
+    lf_vector = np.around(np.array([lf_min, lf_max, lf_mean, lf_std]),5)
+    yaml_export(lf_vector, output_dir,'descending_ankle_left_angle', 'vector')
+
+    rul_max, rul_min, rul_mean, rul_std = PI_Sensors_RUL(test)
+    rul_vector = np.around(np.array([rul_min, rul_max, rul_mean, rul_std]),5)
+    yaml_export(rul_vector, output_dir,'descending_hip_right_angle', 'vector')
+
+    rk_max, rk_min, rk_mean, rk_std = PI_Sensors_RK(test)
+    rk_vector = np.around(np.array([rk_min, rk_max, rk_mean, rk_std]),5)
+    yaml_export(rk_vector, output_dir,'descending_knee_right_angle', 'vector')
+
+    rf_max, rf_min, rf_mean, rf_std = PI_Sensors_RF(test)
+    rf_vector = np.around(np.array([rf_min, rf_max, rf_mean, rf_std]),5)
+    yaml_export(rf_vector, output_dir,'descending_ankle_right_angle', 'vector')
+    
     
     print("The metrics generation finished successfully")
 
