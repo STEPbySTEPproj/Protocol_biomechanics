@@ -477,7 +477,7 @@ def Generate_PI(argv):
         S_FS= L_FS
 
     #Ascend metrics
-    yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'ascending_total_time', 'scalar')
+    yaml_export(np.mean([S_FS[-1]-P_FS[0]]), output_dir,  'ascending_total_time', 'scalar')
     
     #weight_acceptance_ascend 
 
@@ -666,7 +666,7 @@ def Generate_PI(argv):
         S_FS= L_FS
 
     #Descend metrics
-    yaml_export(np.mean([S_FS[-1]-P_TO[0]]), output_dir,  'descending_total_time', 'scalar')
+    yaml_export(np.mean([S_FS[-1]-P_FS[0]]), output_dir,  'descending_total_time', 'scalar')
     
     #weight_acceptance_descend 
 
