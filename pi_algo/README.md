@@ -35,9 +35,9 @@ Under Linux, another option is:
 python3 -m venv venv
 # to be executed everytime a terminal session is launched
 source venv/bin/activate
-pip install --upgrade pip
-pip install -r pi_algo/requirements.txt
-pip install -e pi_algo
+pip3 install --upgrade pip
+pip3 install -r pi_algo/requirements.txt
+pip3 install -e pi_algo
 # to deactive the virtual environment
 deactivate
 ```
@@ -45,12 +45,13 @@ deactivate
 ## Usage in Windows
 
 Generate the performance indicators, assuming the folder `out` has already been created:
+
 ```term
 python pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/platformData.csv out
 ```
 
 The sample file is the output of the data acquisition software.
-The files in `out` folder should be the same as the ones in pi_algo/pi_algo/tests/data/protocol_1/output
+The files in `out` folder should be the same as the ones in [pi_algo/pi_algo/tests/data/protocol_1/output](pi_algo/pi_algo/tests/data/protocol_1/output)
 
 ## Usage in Linux
 
@@ -70,7 +71,7 @@ pi_algo/script/run_protocol_1 pi_algo/pi_algo/tests/data/protocol_1/input/data/p
 ```
 
 The sample file is the output of the data acquisition software.
-The files in `out` folder should be the same as the ones in pi_algo/pi_algo/tests/data/protocol_1/output
+The files in `out` folder should be the same as the ones in [pi_algo/pi_algo/tests/data/protocol_1/output](pi_algo/pi_algo/tests/data/protocol_1/output)
 
 ## Docker
 
