@@ -35,7 +35,7 @@ def verify_connection():
             if(not is_finished):
                 df['Frame_Idx'] = df['Frame_Idx'].astype(int)
                 df=df.drop([0], axis=0)
-                df=df.drop(df.columns[[0]], axis='columns')
+                #df=df.drop(df.columns[[0]], axis='columns')
                 df.to_csv('platformData.csv',index=0)
                 print('Comm finished')
                 is_finished = True
