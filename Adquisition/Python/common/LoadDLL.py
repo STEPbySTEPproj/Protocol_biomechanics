@@ -28,6 +28,8 @@ def verify_connection():
     global Flag_Receiving
     global Flag_Comm_Started
     global is_finished
+    global df
+    
     if(Flag_Comm_Started):
         if(Flag_Receiving):
             Flag_Receiving = False
