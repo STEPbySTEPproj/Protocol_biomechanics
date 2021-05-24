@@ -9,6 +9,7 @@ from ruamel.yaml import YAML
 import sys
 from termcolor import colored
 from pkgutil import get_loader
+import math
 
 # Check https://stackoverflow.com/questions/5003755/how-to-use-pkgutils-get-data-with-csv-reader-in-python
 
@@ -359,31 +360,39 @@ def Generate_PI(argv):
     plt.plot(y, 'r-', lw=2)
     plt.show()
     '''  
-    y=test["LK-R_X"]
+    y=test["RK-R_X"]
     x=np.arange(0,len(y))
+    x=x[200:len(x)]
+    y=y[200:len(y)]
+    
+    threshold=0.2
+    ydiff = np.diff(y)
 
-    #     ___ detection of local maximums ___
-    c = (np.diff(np.sign(np.diff(y))) < 0).nonzero()[0] + 1         # local max
-    # +1 due to the fact that diff reduces the original index number
-    max_y=y.max()
-    max_peaks_x=x[c]
-    max_peaks_y=y[c]
-    max_peaks_x=max_peaks_x[max_peaks_y<=max_y/2]
-    max_peaks_y=max_peaks_y[max_peaks_y<=max_y/2]
+    less1 = abs(ydiff) < threshold
+    ydiff[less1] = 0
+    more1 = abs(ydiff) > threshold
+    ydiff[more1] = 1
+    ydiff= [int(x) for x in ydiff]
 
-    max_y=max_peaks_y.max()
-    index=np.where(y==max_y)
-    index=int(index[0])
+    str_int="".join(map(str, ydiff))
+    num_zeros=300
+    num_zeros_str=""
+    for i in range(num_zeros):
+        num_zeros_str=num_zeros_str+"0"
 
-    i=index
-    while (np.int32(y[i])>=5):
-        i=i-1
-    index_stop_ascending=i-100
+    ixflatstart = [i.start() for i in re.finditer("1"+num_zeros_str, str_int)]
+    # the return value is the index of the first zero, so we need to add 20 to get the index of 1.
+    ixflatend = [i.start() for i in re.finditer(num_zeros_str+"1", str_int)]
+    ixflatend = [n + num_zeros for n in ixflatend]
 
-    i=index
-    while (np.int32(y[i])>=5):
-        i=i+1
-    index_start_descending=i+100
+    '''
+    plt.plot(y, 'g-', lw=2)
+    plt.plot(ixflatstart, y[ixflatstart],'r.')
+    plt.plot(ixflatend, y[ixflatend],'b.')
+    plt.show()
+    '''
+    index_stop_ascending = ixflatstart[0] + math.floor((ixflatend[1]-ixflatstart[0])/2)
+    index_start_descending = ixflatstart[1] + math.floor((ixflatend[2]-ixflatstart[1])/2)
 
     '''
     plt.figure(figsize=(12, 5))
@@ -393,6 +402,7 @@ def Generate_PI(argv):
     plt.show()
     '''
 
+    frecuencia=120
     # --------------- Ascending model -------------------------------
     #print("Loading ascend model")
     data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_ascend.sav", False)
@@ -477,7 +487,7 @@ def Generate_PI(argv):
         S_FS= L_FS
 
     #Ascend metrics
-    yaml_export(np.mean([S_FS[-1]-P_FS[0]]), output_dir,  'ascending_total_time', 'scalar')
+    yaml_export(np.mean([S_FS[-1]-P_FS[0]])/frecuencia, output_dir,  'ascending_total_time', 'scalar')
     
     #weight_acceptance_ascend 
 
@@ -666,7 +676,7 @@ def Generate_PI(argv):
         S_FS= L_FS
 
     #Descend metrics
-    yaml_export(np.mean([S_FS[-1]-P_FS[0]]), output_dir,  'descending_total_time', 'scalar')
+    yaml_export(np.mean([S_FS[-1]-P_FS[0]])/frecuencia, output_dir,  'descending_total_time', 'scalar')
     
     #weight_acceptance_descend 
 
