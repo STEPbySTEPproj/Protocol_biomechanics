@@ -10,6 +10,8 @@ import sys
 from termcolor import colored
 from pkgutil import get_loader
 import math
+import matplotlib.pyplot as plt
+
 
 # Check https://stackoverflow.com/questions/5003755/how-to-use-pkgutils-get-data-with-csv-reader-in-python
 
@@ -335,7 +337,7 @@ def Generate_PI(argv):
     if(test.columns[-1]=='Label'):
         test=test.drop(columns='Label')
     #test=test.drop(columns='Frame_Idx')
-    test=smooth_signal(test)
+    test2=smooth_signal(test)
 
     '''
     #Classify the movement as ascend or descend
@@ -362,18 +364,26 @@ def Generate_PI(argv):
     '''  
     y=test["RK-R_X"]
     x=np.arange(0,len(y))
-    x=x[200:len(x)]
-    y=y[200:len(y)]
+    crop_x = 0
+    x=x[crop_x:len(x)]
+    y=y[crop_x:len(y)]
     
-    threshold=0.2
+    threshold=0.7
     ydiff = np.diff(y)
-
+    ydiff=np.append(ydiff,0)
+    '''
+    plt.plot(x,ydiff)
+    plt.show()
+    '''
     less1 = abs(ydiff) < threshold
     ydiff[less1] = 0
     more1 = abs(ydiff) > threshold
     ydiff[more1] = 1
     ydiff= [int(x) for x in ydiff]
-
+    '''
+    plt.plot(x,ydiff)
+    plt.show()
+    '''
     str_int="".join(map(str, ydiff))
     num_zeros=300
     num_zeros_str=""
@@ -381,19 +391,18 @@ def Generate_PI(argv):
         num_zeros_str=num_zeros_str+"0"
 
     ixflatstart = [i.start() for i in re.finditer("1"+num_zeros_str, str_int)]
-    # the return value is the index of the first zero, so we need to add 20 to get the index of 1.
+    ixflatstart = [n + crop_x for n in ixflatstart]
+    # the return value is the index of the first zero, so we need to add zeros to get the index of 1.
     ixflatend = [i.start() for i in re.finditer(num_zeros_str+"1", str_int)]
-    ixflatend = [n + num_zeros for n in ixflatend]
-
+    ixflatend = [n + num_zeros + crop_x for n in ixflatend]
     '''
-    plt.plot(y, 'g-', lw=2)
+    plt.plot(x,y, 'g-', lw=2)
     plt.plot(ixflatstart, y[ixflatstart],'r.')
     plt.plot(ixflatend, y[ixflatend],'b.')
     plt.show()
     '''
     index_stop_ascending = ixflatstart[0] + math.floor((ixflatend[1]-ixflatstart[0])/2)
     index_start_descending = ixflatstart[1] + math.floor((ixflatend[2]-ixflatstart[1])/2)
-
     '''
     plt.figure(figsize=(12, 5))
     plt.plot(x,y, color='grey')
