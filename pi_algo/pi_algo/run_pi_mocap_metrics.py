@@ -416,7 +416,7 @@ def Generate_PI(argv):
     frecuencia=120
     # --------------- Ascending model -------------------------------
     #print("Loading ascend model")
-    data_path = get_data_smart(__name__, "C:/Users/martxeleize/Desktop/sbs/model_ascend.sav", False)
+    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_ascend.sav", False)
     model=pickle.load(open(data_path, 'rb'))
     test2=test.iloc[0:index_stop_ascending]
 
@@ -623,7 +623,7 @@ def Generate_PI(argv):
 
     # --------------- Descending model -------------------------------
     #print("Loading descend model")
-    data_path = get_data_smart(__name__, "C:/Users/martxeleize/Desktop/sbs/model_descend.sav", False)
+    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_descend.sav", False)
     model=pickle.load(open(data_path, 'rb'))
     test2=test.iloc[index_start_descending:len(test)-1]
 
