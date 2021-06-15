@@ -1,3 +1,4 @@
+from numpy.lib.function_base import msort
 import pandas as pd
 import os
 import numpy as np
@@ -10,7 +11,7 @@ import sys
 from termcolor import colored
 from pkgutil import get_loader
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 # Check https://stackoverflow.com/questions/5003755/how-to-use-pkgutils-get-data-with-csv-reader-in-python
@@ -292,6 +293,7 @@ def smooth(y, box_pts):
 
 def Generate_PI(argv):
 
+
     USAGE = """usage: run_pi file_in folder_out
             file_in: csv file containing at least a timestamp column
             folder_out: folder where the PI yaml file yaml file will be stored
@@ -414,7 +416,7 @@ def Generate_PI(argv):
     frecuencia=120
     # --------------- Ascending model -------------------------------
     #print("Loading ascend model")
-    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_ascend.sav", False)
+    data_path = get_data_smart(__name__, "C:/Users/martxeleize/Desktop/sbs/model_ascend.sav", False)
     model=pickle.load(open(data_path, 'rb'))
     test2=test.iloc[0:index_stop_ascending]
 
@@ -428,7 +430,7 @@ def Generate_PI(argv):
 
     #The prediction is performed and the observations removed due to the window are added again
     pred=model.predict(X_test)
-    pred=np.asarray(pred,dtype=int)
+    pred=np.asarray(pred,dtype=int)    
     pred=list(np.pad(pred, (window, window), 'constant'))
 
     #Estimate events based on the sequence of predictions, 67 is left leg and 34 rigth leg
@@ -495,115 +497,133 @@ def Generate_PI(argv):
         P_FS= R_FS
         S_FS= L_FS
 
+    # Calculate gate phase events
+    # Ipsilateral Foot-Strike1: IFS1
+    # Contralateral Toe-Off: CTO
+    # Mid-swing1: MS1
+    # Contralateral Foot-Strike: CFS
+    # Ipsilateral Toe-Off: ITO
+    # Mid-swing2: MS2
+    # Ipsilateral Foot-Strike2: IFS2
+
+    IFS1 = []
+    CTO = []
+    MS1 = []
+    CFS = []
+    ITO = []
+    MS2 = []
+    IFS2 = []
+
+    for i in range(len(P_FS)-1):
+        IFS1.append(P_FS[i])
+        ITO.append(P_TO[i+1])
+        MS2.append(P_MS[i+1])
+
+    for i in range(len(S_FS)):
+        CTO.append(S_TO[i])
+        MS1.append(S_MS[i])
+        CFS.append(S_FS[i])
+
+    for i in range(1, len(P_FS)):
+        IFS2.append(P_FS[i])
+
+    #Remove the last indexes if they are not the same length. Delete the last value since a whole phase has not been added.
+    len1 = len(IFS1)
+    len2 = len(CTO)
+    len3 = len(IFS2)
+    if(len1 != len2 or len1 != len3 or len2 != len3):
+        min_value = min(len1, len2, len3)
+        if (len1 > min_value):
+            IFS1.pop()
+            ITO.pop()
+            MS2.pop()
+        if (len2 > min_value):
+            CTO.pop()
+            MS1.pop()
+            CFS.pop()
+        if (len3 > min_value):
+            IFS2.pop()        
+
+
     #Ascend metrics
-    yaml_export(np.mean([S_FS[-1]-P_FS[0]])/frecuencia, output_dir,  'ascending_total_time', 'scalar')
+    total_time = IFS2[-1]-IFS1[0]
+    asc_total_time = []
+    asc_total_time.append((total_time)/frecuencia)
+    
+    yaml_export(np.float64(asc_total_time[0]), output_dir,  'ascending_total_time', 'scalar')
     
     #weight_acceptance_ascend 
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(CTO)):
+        results.append((CTO[i]-IFS1[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-
-    yaml_export(np.mean(results), output_dir,  'ascending_weight_acceptance', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_weight_acceptance', 'scalar')
 
     #pull up 
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(MS1)):
+        results.append((MS1[i]-CTO[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'ascending_pull_up', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_pull_up', 'scalar')
 
     # forward_continuance_ascend
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((S_FS[i]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((P_FS[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
+    for i in range(len(CFS)):
+        results.append((CFS[i]-MS1[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'ascending_forward_continuance', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_forward_continuance', 'scalar')
 
 
     # push up
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_TO[i+1]-S_FS[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_TO[i]-P_FS[i])/(S_FS[i+1]-S_FS[i]))
+    for i in range(len(ITO)):
+        results.append((ITO[i]-CFS[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'ascending_push_up', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_push_up', 'scalar')
 
 
     # swing_foot_clearance
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
+    for i in range(len(MS2)):
+        results.append((MS2[i]-ITO[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'ascending_swing_foot_clearance', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_swing_foot_clearance', 'scalar')
 
 
     # swing_foot_placement
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(IFS2)):
+        results.append((IFS2[i]-MS2[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'ascending_swing_foot_placement', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'ascending_swing_foot_placement', 'scalar')
 
 
     # --------------- Descending model -------------------------------
     #print("Loading descend model")
-    data_path = get_data_smart(__name__, "tests/data/protocol_1/input/models/model_descend.sav", False)
+    data_path = get_data_smart(__name__, "C:/Users/martxeleize/Desktop/sbs/model_descend.sav", False)
     model=pickle.load(open(data_path, 'rb'))
     test2=test.iloc[index_start_descending:len(test)-1]
 
@@ -684,91 +704,100 @@ def Generate_PI(argv):
         P_FS= R_FS
         S_FS= L_FS
 
+    
+    # Calculate gate phase events
+    # Foot-Strike1: FS1
+    # Toe-Off1: TO1
+    # Mid-swing1: MS1
+    # Toe-Off2: TO2
+    # Mid-swing2: MS2
+    # Foot-Strike2: FS2
+
+    FS1 = []
+    TO1 = []
+    MS1 = []
+    TO2 = []
+    MS2 = []
+    FS2 = []
+
+    for i in range(len(P_FS)-1):
+        FS1.append(P_FS[i])
+    
+    for i in range(1, len(P_FS)):
+        TO2.append(P_TO[i])
+        MS2.append(P_MS[i])
+
+    for i in range(len(S_FS)):
+        TO1.append(S_TO[i])
+        MS1.append(S_MS[i])
+
+    for i in range(1, len(P_FS)):
+        FS2.append(P_FS[i])
+
+
+
     #Descend metrics
-    yaml_export(np.mean([S_FS[-1]-P_FS[0]])/frecuencia, output_dir,  'descending_total_time', 'scalar')
+    total_time = FS2[-1]-FS1[0]
+    des_total_time = []
+    des_total_time.append((total_time)/frecuencia)
+
+    #yaml_export(np.mean([S_FS[-1]-P_FS[0]])/frecuencia, output_dir,  'descending_total_time', 'scalar')
+    yaml_export(np.float64(des_total_time[0]), output_dir,  'descending_total_time', 'scalar')
+
     
     #weight_acceptance_descend 
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((S_TO[i]-P_FS[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((P_TO[i+1]-S_FS[i])/(S_FS[i+1]-S_FS[i]))
+    for i in range(len(TO1)):
+        results.append((TO1[i]-FS1[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'descending_weight_acceptance', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'descending_weight_acceptance', 'scalar')
     
     # forward_continuance_descend 
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((S_MS[i]-S_TO[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((P_MS[i]-P_TO[i])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(MS1)):
+        results.append((MS1[i]-TO1[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'descending_forward_continuance', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'descending_forward_continuance', 'scalar')
     
     # Controlled_lowering_descend
     
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_TO[i+1]-S_MS[i])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_TO[i]-P_MS[i])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(TO2)):
+        results.append((TO2[i]-MS1[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'descending_controlled_lowering', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'descending_controlled_lowering', 'scalar')
     
     #  Leg_pull_through_descend
 
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_MS[i+1]-P_TO[i+1])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_MS[i+1]-S_TO[i+1])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(MS2)):
+        results.append((MS2[i]-TO2[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'descending_swing_leg_pull_through', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'descending_swing_leg_pull_through', 'scalar')
 
     # Foot_placement_descend
     results=[]
 
-    for i in range(len(P_FS)-1):
-        gait_time=P_FS[i+1]-P_FS[i]
-        results.append((P_FS[i+1]-P_MS[i+1])/(P_FS[i+1]-P_FS[i]))
-
-    for i in range(len(S_FS)-1):
-        gait_time=S_FS[i+1]-S_FS[i]
-        results.append((S_FS[i+1]-S_MS[i+1])/(S_FS[i+1]-S_FS[i]))
-
+    for i in range(len(FS2)):
+        results.append((FS2[i]-MS2[i])/(total_time))
 
     results = [0 if i < 0 else i for i in results]
 
-    yaml_export(np.mean(results), output_dir,  'descending_swing_foot_placement', 'scalar')
+    yaml_export(np.sum(results), output_dir,  'descending_swing_foot_placement', 'scalar')
 
     # Ascending model
     # Reading again the original file
@@ -832,11 +861,3 @@ def Generate_PI(argv):
     
     
     print("The metrics generation finished successfully")
-
-
-
-
-
-
-
-
