@@ -542,8 +542,16 @@ def Generate_PI(argv):
             MS1.pop()
             CFS.pop()
         if (len3 > min_value):
-            IFS2.pop()        
-
+            IFS2.pop()
+            
+    #Remove the first measures
+    IFS1.pop(0)
+    CTO.pop(0)
+    MS1.pop(0)
+    CFS.pop(0)
+    ITO.pop(0)
+    MS2.pop(0)
+    IFS2.pop(0)
 
     #Ascend metrics
     total_time = IFS2[-1]-IFS1[0]
@@ -620,6 +628,60 @@ def Generate_PI(argv):
 
     yaml_export(np.sum(results), output_dir,  'ascending_swing_foot_placement', 'scalar')
 
+    # begin/end stance
+    # 1 Foot
+    begin_stance_vector = []
+    end_stance_vector = []
+    for i in range(len(IFS1)):
+        begin_stance_vector.append(IFS1[i]/frecuencia)
+        end_stance_vector.append(ITO[i]/frecuencia)
+        
+    begin_stance_vector2 = np.around(begin_stance_vector,5)
+    end_stance_vector2 = np.around(end_stance_vector,5)
+
+    yaml_export(begin_stance_vector2, output_dir,'Foot(1).BeginStance', 'vector')
+    yaml_export(end_stance_vector2, output_dir,'Foot(1).EndStance', 'vector')
+
+    # 2 Foot
+    begin_stance_vector = []
+    end_stance_vector = []
+    for j in range(len(IFS1) - 1):
+        begin_stance_vector.append(CFS[j]/frecuencia)
+        end_stance_vector.append(CTO[j+1]/frecuencia)
+    
+    begin_stance_vector2 = np.around(begin_stance_vector,5)
+    end_stance_vector2 = np.around(end_stance_vector,5)
+
+    yaml_export(begin_stance_vector2, output_dir,'Foot(2).BeginStance', 'vector')
+    yaml_export(end_stance_vector2, output_dir,'Foot(2).EndStance', 'vector')
+
+
+    # begin/end swing
+    # 1 Foot
+    begin_swing_vector = []
+    end_swing_vector = []
+    for i in range(len(ITO)):
+        begin_swing_vector.append(ITO[i]/frecuencia)
+        end_swing_vector.append(IFS2[i]/frecuencia)
+        
+    begin_swing_vector2 = np.around(begin_swing_vector,5)
+    end_swing_vector2 = np.around(end_swing_vector,5)
+
+    yaml_export(begin_swing_vector2, output_dir,'Foot(1).BeginSwing', 'vector')
+    yaml_export(end_swing_vector2, output_dir,'Foot(1).EndSwing', 'vector')
+
+    # 2 Foot
+    begin_swing_vector = []
+    end_swing_vector = []
+    for j in range(len(IFS1) - 1):
+        begin_swing_vector.append(CTO[j+1]/frecuencia)
+        end_swing_vector.append(CFS[j+1]/frecuencia)
+    
+    begin_swing_vector2 = np.around(begin_swing_vector,5)
+    end_swing_vector2 = np.around(end_swing_vector,5)
+
+    yaml_export(begin_swing_vector2, output_dir,'Foot(2).BeginSwing', 'vector')
+    yaml_export(end_swing_vector2, output_dir,'Foot(2).EndSwing', 'vector')
 
     # --------------- Descending model -------------------------------
     #print("Loading descend model")
