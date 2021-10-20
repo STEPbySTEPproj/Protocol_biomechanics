@@ -1,4 +1,17 @@
-# Protocol_biomechanics
+# EUROBENCH STEPbySTEP project
+
+Systematic Test of Exoskeleton Products by a Stairs-based Testbed Evaluation Protocol
+
+![image](https://user-images.githubusercontent.com/73795169/138060710-a35f581a-dd7c-4411-ab4d-50bfc5343788.png)
+
+
+## Protocol_biomechanics
+
+This repo is about (data collection and processing) for the biomechanical characterisation of the human locomotion during stair waking, following the Eurobench protocol associated to it.
+It is composed of two folders:
+- Adquisition: given a measurement captured in the Axis Neuron Pro mocap, this software generates a csv file of that data that it will be used in the PIs computation
+- pi_algo: code to produce the StetByStep project PIs
+
 
 ## Acknowledgements
 
