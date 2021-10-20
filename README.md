@@ -10,7 +10,7 @@ Systematic Test of Exoskeleton Products by a Stairs-based Testbed Evaluation Pro
 This repo is about (data collection and processing) for the biomechanical characterisation of the human locomotion during stair waking, following the Eurobench protocol associated to it.
 It is composed of two folders:
 - Adquisition: given a measurement captured in the Axis Neuron Pro mocap, this software generates a csv file of that data that it will be used in the PIs computation
-- pi_algo: code to produce the StetByStep project PIs
+- pi_algo: code to produce the StepByStep project PIs
 
 
 ## Acknowledgements
