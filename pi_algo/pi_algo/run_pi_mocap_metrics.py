@@ -545,13 +545,13 @@ def Generate_PI(argv):
             IFS2.pop()
             
     #Remove the first measures
-    IFS1.pop(0)
-    CTO.pop(0)
-    MS1.pop(0)
-    CFS.pop(0)
-    ITO.pop(0)
-    MS2.pop(0)
-    IFS2.pop(0)
+    # IFS1.pop(0)
+    # CTO.pop(0)
+    # MS1.pop(0)
+    # CFS.pop(0)
+    # ITO.pop(0)
+    # MS2.pop(0)
+    # IFS2.pop(0)
 
     #Ascend metrics
     total_time = IFS2[-1]-IFS1[0]
