@@ -12,6 +12,7 @@ from termcolor import colored
 from pkgutil import get_loader
 import math
 #import matplotlib.pyplot as plt
+import yaml
 
 
 # Check https://stackoverflow.com/questions/5003755/how-to-use-pkgutils-get-data-with-csv-reader-in-python
@@ -478,7 +479,13 @@ def Generate_PI(argv):
     P_FS=[]
     S_FS=[]
 
+    # 0: First the Left foot
+    # 1: First the Right foot
+    first = 0
+    
     if(R_TO[0]>=L_TO[0]):
+        first = 0
+
         P_TO= L_TO
         S_TO= R_TO
 
@@ -488,6 +495,8 @@ def Generate_PI(argv):
         P_FS= L_FS
         S_FS= R_FS
     elif(L_TO[0]>R_TO[0]):
+        first = 1
+
         P_TO= R_TO
         S_TO= L_TO
 
@@ -628,60 +637,80 @@ def Generate_PI(argv):
 
     yaml_export(np.sum(results), output_dir,  'ascending_swing_foot_placement', 'scalar')
 
+    
     # begin/end stance
+    dict_phases = {}
     # 1 Foot
-    begin_stance_vector = []
-    end_stance_vector = []
+    begin_stance_vector11 = []
+    end_stance_vector11 = []
     for i in range(len(IFS1)):
-        begin_stance_vector.append(IFS1[i]/frecuencia)
-        end_stance_vector.append(ITO[i]/frecuencia)
+        begin_stance_vector11.append(IFS1[i]/frecuencia)
+        end_stance_vector11.append(ITO[i]/frecuencia)
         
-    begin_stance_vector2 = np.around(begin_stance_vector,5)
-    end_stance_vector2 = np.around(end_stance_vector,5)
-
-    yaml_export(begin_stance_vector2, output_dir,'Foot(1).BeginStance', 'vector')
-    yaml_export(end_stance_vector2, output_dir,'Foot(1).EndStance', 'vector')
+    begin_stance_vector12 = np.around(begin_stance_vector11,5)
+    end_stance_vector12 = np.around(end_stance_vector11,5)
 
     # 2 Foot
-    begin_stance_vector = []
-    end_stance_vector = []
+    begin_stance_vector21 = []
+    end_stance_vector21 = []
     for j in range(len(IFS1) - 1):
-        begin_stance_vector.append(CFS[j]/frecuencia)
-        end_stance_vector.append(CTO[j+1]/frecuencia)
+        begin_stance_vector21.append(CFS[j]/frecuencia)
+        end_stance_vector21.append(CTO[j+1]/frecuencia)
     
-    begin_stance_vector2 = np.around(begin_stance_vector,5)
-    end_stance_vector2 = np.around(end_stance_vector,5)
+    begin_stance_vector22 = np.around(begin_stance_vector21,5)
+    end_stance_vector22 = np.around(end_stance_vector21,5)
 
-    yaml_export(begin_stance_vector2, output_dir,'Foot(2).BeginStance', 'vector')
-    yaml_export(end_stance_vector2, output_dir,'Foot(2).EndStance', 'vector')
-
+    if(first == 0):
+        # The first step with the left foot
+        dict_phases["begin_stance_left"] = begin_stance_vector12.tolist()
+        dict_phases["end_stance_left"] = end_stance_vector12.tolist()
+        dict_phases["begin_stance_right"] = begin_stance_vector22.tolist()
+        dict_phases["end_stance_right"] = end_stance_vector22.tolist()
+        
+    else:
+        # The first step with the right foot
+        dict_phases["begin_stance_left"] = begin_stance_vector22.tolist()
+        dict_phases["end_stance_left"] = end_stance_vector22.tolist()
+        dict_phases["begin_stance_right"] = begin_stance_vector12.tolist()
+        dict_phases["end_stance_right"] = end_stance_vector12.tolist()
 
     # begin/end swing
     # 1 Foot
-    begin_swing_vector = []
-    end_swing_vector = []
+    begin_swing_vector11 = []
+    end_swing_vector11 = []
     for i in range(len(ITO)):
-        begin_swing_vector.append(ITO[i]/frecuencia)
-        end_swing_vector.append(IFS2[i]/frecuencia)
+        begin_swing_vector11.append(ITO[i]/frecuencia)
+        end_swing_vector11.append(IFS2[i]/frecuencia)
         
-    begin_swing_vector2 = np.around(begin_swing_vector,5)
-    end_swing_vector2 = np.around(end_swing_vector,5)
-
-    yaml_export(begin_swing_vector2, output_dir,'Foot(1).BeginSwing', 'vector')
-    yaml_export(end_swing_vector2, output_dir,'Foot(1).EndSwing', 'vector')
+    begin_swing_vector12 = np.around(begin_swing_vector11,5)
+    end_swing_vector12 = np.around(end_swing_vector11,5)
 
     # 2 Foot
-    begin_swing_vector = []
-    end_swing_vector = []
+    begin_swing_vector21 = []
+    end_swing_vector21 = []
     for j in range(len(IFS1) - 1):
-        begin_swing_vector.append(CTO[j+1]/frecuencia)
-        end_swing_vector.append(CFS[j+1]/frecuencia)
+        begin_swing_vector21.append(CTO[j+1]/frecuencia)
+        end_swing_vector21.append(CFS[j+1]/frecuencia)
     
-    begin_swing_vector2 = np.around(begin_swing_vector,5)
-    end_swing_vector2 = np.around(end_swing_vector,5)
+    begin_swing_vector22 = np.around(begin_swing_vector21,5)
+    end_swing_vector22 = np.around(np.array(end_swing_vector21),5)
 
-    yaml_export(begin_swing_vector2, output_dir,'Foot(2).BeginSwing', 'vector')
-    yaml_export(end_swing_vector2, output_dir,'Foot(2).EndSwing', 'vector')
+    if(first == 0):
+        # The first step with the left foot
+        dict_phases["begin_swing_left"] = begin_swing_vector12.tolist()
+        dict_phases["end_swing_left"] = end_swing_vector12.tolist()
+        dict_phases["begin_swing_right"] = begin_swing_vector22.tolist()
+        dict_phases["end_swing_right"] = end_swing_vector22.tolist()
+    else:
+        # The first step with the right foot
+        dict_phases["begin_swing_left"] = begin_swing_vector22.tolist()
+        dict_phases["end_swing_left"] = end_swing_vector22.tolist()
+        dict_phases["begin_swing_right"] = begin_swing_vector12.tolist()
+        dict_phases["end_swing_right"] = end_swing_vector12.tolist()
+    
+
+    with open('{}/{}.yml'.format(output_dir,"gaitCycle"), 'w') as file:
+        _ = yaml.safe_dump(dict_phases, file, default_flow_style=None)
 
     # --------------- Descending model -------------------------------
     #print("Loading descend model")
