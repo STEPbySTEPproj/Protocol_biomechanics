@@ -1,0 +1,8 @@
+begin_stance_left: [6.325, 7.54167]
+begin_stance_right: [6.95]
+begin_swing_left: [6.95, 8.14167]
+begin_swing_right: [7.54167]
+end_stance_left: [6.95, 8.14167]
+end_stance_right: [7.54167]
+end_swing_left: [7.54167, 8.79167]
+end_swing_right: [8.14167]
